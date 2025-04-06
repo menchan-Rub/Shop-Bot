@@ -1,0 +1,7 @@
+# この行はプレースホルダーです。
+# 実際のPNGデータは正しく扱えないため、
+# Docker内で次のコマンドを実行してPNGを生成するか、
+# 別の方法でアイコンファイルを提供してください:
+# 
+# cd /app/public/images
+# convert -size 512x512 xc:transparent icon-512x512.png 

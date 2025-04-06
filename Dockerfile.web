@@ -1,0 +1,16 @@
+FROM node:18-slim
+
+WORKDIR /app
+
+COPY package*.json ./
+
+RUN npm install
+
+# アップロード用のディレクトリを作成
+RUN mkdir -p uploads
+
+COPY . .
+
+EXPOSE 3000
+
+CMD ["node", "src/dashboard/server.js"] 

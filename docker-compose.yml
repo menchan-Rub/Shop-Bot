@@ -1,0 +1,107 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: discord-shop-db
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - type: volume
+        source: mongodb_data
+        target: /data/db
+    env_file:
+      - /home/menchan/Programming/Discord/Shop/.env
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_ROOT_USER}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD}
+    networks:
+      - shop-network
+
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile.bot
+    container_name: discord-shop-bot
+    restart: always
+    depends_on:
+      - mongodb
+    env_file:
+      - /home/menchan/Programming/Discord/Shop/.env
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - MONGODB_URI=mongodb://${MONGO_ROOT_USER}:${MONGO_ROOT_PASSWORD}@mongodb:27017/shop?authSource=admin
+      - CLIENT_ID=${CLIENT_ID}
+      - CLIENT_SECRET=${CLIENT_SECRET}
+      - DISCORD_TOKEN=${DISCORD_TOKEN}
+      - GUILD_ID=${GUILD_ID}
+      - JWT_SECRET=${JWT_SECRET}
+    networks:
+      - shop-network
+    volumes:
+      - ./logs:/app/logs
+      - ./uploads:/app/uploads
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    container_name: discord-shop-api
+    restart: always
+    ports:
+      - "3001:3000"
+    depends_on:
+      - mongodb
+      - bot
+    env_file:
+      - /home/menchan/Programming/Discord/Shop/.env
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - MONGODB_URI=mongodb://${MONGO_ROOT_USER}:${MONGO_ROOT_PASSWORD}@mongodb:27017/shop?authSource=admin
+      - CLIENT_ID=${CLIENT_ID}
+      - CLIENT_SECRET=${CLIENT_SECRET}
+      - DASHBOARD_URL=http://localhost:3000
+      - DASHBOARD_PORT=3000
+      - JWT_SECRET=${JWT_SECRET}
+      - CORS_ORIGIN=http://localhost:3000
+    networks:
+      - shop-network
+    volumes:
+      - ./logs:/app/logs
+      - ./uploads:/app/uploads
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: discord-shop-client
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+    env_file:
+      - /home/menchan/Programming/Discord/Shop/.env
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - NEXTAUTH_URL=http://localhost:3000
+      - NEXTAUTH_SECRET=${JWT_SECRET}
+      - NEXT_PUBLIC_API_URL=http://localhost:3001
+      - DISCORD_CLIENT_ID=${CLIENT_ID}
+      - DISCORD_CLIENT_SECRET=${CLIENT_SECRET}
+      - API_SERVER=http://api:3000
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+      - /app/.next
+    networks:
+      - shop-network
+
+networks:
+  shop-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+    driver: local 

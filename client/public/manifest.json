@@ -1,0 +1,9 @@
+{
+  "name": "Discord Shop",
+  "short_name": "Shop",
+  "theme_color": "#5865F2",
+  "background_color": "#FFFFFF",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait"
+} 
