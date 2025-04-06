@@ -78,6 +78,7 @@ const UsersManagement = () => {
   const router = useRouter();
   const toast = useToast();
   const { isOpen: isModalOpen, onOpen: onModalOpen, onClose: onModalClose } = useDisclosure();
+  const { isOpen: isNewUserModalOpen, onOpen: onNewUserModalOpen, onClose: onNewUserModalClose } = useDisclosure();
   
   // ユーザーリスト
   const [users, setUsers] = useState<User[]>([]);
@@ -249,14 +250,32 @@ const UsersManagement = () => {
 
   // ユーザー編集モーダルを開く
   const handleEditUser = (user: User) => {
-    setSelectedUser(user);
+    console.log('ユーザー編集モーダルを開きます:', user);
+    
+    // まず選択したユーザーとフォームをリセット
+    setSelectedUser(null);
     setUserForm({
-      isAdmin: user.isAdmin,
-      isStaff: user.isStaff,
-      status: user.status,
-      points: user.points
+      isAdmin: false,
+      isStaff: false,
+      status: 'active',
+      points: 0
     });
-    onModalOpen();
+    
+    // 少し遅延させてから選択したユーザーを設定
+    setTimeout(() => {
+      setSelectedUser(user);
+      
+      // フォームの初期値を設定
+      setUserForm({
+        isAdmin: user.isAdmin || false,
+        isStaff: user.isStaff || false,
+        status: user.status || 'active',
+        points: user.points || 0
+      });
+      
+      // モーダルを開く
+      onModalOpen();
+    }, 10);
   };
 
   // ユーザー更新
@@ -546,7 +565,7 @@ const UsersManagement = () => {
                   boxShadow="sm"
                   _hover={{ transform: 'translateY(-2px)', boxShadow: 'md' }}
                   transition="all 0.2s"
-                  onClick={onModalOpen}
+                  onClick={onNewUserModalOpen}
                 >
                   新規ユーザー
                 </Button>
@@ -679,7 +698,7 @@ const UsersManagement = () => {
           <ModalHeader>ユーザー編集</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            {selectedUser && (
+            {selectedUser ? (
               <VStack spacing={4} align="stretch">
                 <Box>
                   <Text fontWeight="bold">ユーザー名</Text>
@@ -738,6 +757,11 @@ const UsersManagement = () => {
                   />
                 </FormControl>
               </VStack>
+            ) : (
+              <Center py={6}>
+                <Spinner size="lg" color="blue.500" mr={3} />
+                <Text>ユーザー情報を読み込み中...</Text>
+              </Center>
             )}
           </ModalBody>
 
@@ -749,9 +773,25 @@ const UsersManagement = () => {
               colorScheme="blue" 
               onClick={handleUpdateUser}
               isLoading={isUpdating}
+              isDisabled={!selectedUser}
             >
               保存
             </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+      
+      {/* 新規ユーザーモーダル */}
+      <Modal isOpen={isNewUserModalOpen} onClose={onNewUserModalClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>新規ユーザー作成</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <Text>新規ユーザー作成機能は実装中です。デモデータを使用してください。</Text>
+          </ModalBody>
+          <ModalFooter>
+            <Button onClick={onNewUserModalClose}>閉じる</Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
